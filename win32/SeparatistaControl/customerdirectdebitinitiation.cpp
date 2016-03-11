@@ -32,14 +32,26 @@
 CustomerDirectDebitInitiation::CustomerDirectDebitInitiation()
 :SepaControlDispatch<ICustomerDirectDebitInitiation>(NULL)
 {
+	try{
 	m_pCstmrDrctDbtInitn = new Separatista::pain_008_001::CstmrDrctDbtInitn();
+	} catch (std::bad_alloc& ba){
+          std::cerr << "bad_alloc caught: " << ba.what() << '\n';
+        }catch(...){
+	std::cerr << "bad_alloc caught: ";	
+	}
 	m_bOwnCstmrDrctDbtInitn = true;
 }
 
 CustomerDirectDebitInitiation::~CustomerDirectDebitInitiation()
 {
 	if (m_bOwnCstmrDrctDbtInitn && m_pCstmrDrctDbtInitn)
+		try{
 		delete m_pCstmrDrctDbtInitn;
+		}catch(...){
+	if(std::uncaught_exception() == false) 
+	throw;
+	}
+
 }
 
 STDMETHODIMP CustomerDirectDebitInitiation::QueryInterface(REFIID riid, void** ppvObject)
@@ -48,11 +60,17 @@ STDMETHODIMP CustomerDirectDebitInitiation::QueryInterface(REFIID riid, void** p
 
 	if (IsEqualIID(riid, IID_ISupportErrorInfo))
 	{
+	        try{	
 		pSupportErrorInfo = new SepaControlSupportErrorInfo();
+	        }catch(std::bad_alloc& ba){
+                 std::cerr << "bad_alloc caught: " << ba.what() << '\n';
+                }catch(...){
+         	std::cerr << "bad_alloc caught: ";	
+         	}
 		if (!pSupportErrorInfo)
 			return E_OUTOFMEMORY;
 		pSupportErrorInfo->AddRef();
-		*ppvObject = pSupportErrorInfo;
+		*ppvObject = static_cast<SepaControlSupportErrorInfo *>pSupportErrorInfo;
 		return S_OK;
 	}
 	return SepaControlDispatch<ICustomerDirectDebitInitiation>::QueryInterface(riid, ppvObject);
@@ -209,7 +227,8 @@ STDMETHODIMP CustomerDirectDebitInitiation::SaveAs(BSTR Path, Separatista::IOErr
 
 	try
 	{
-		if ((*pErrorCode = m_pCstmrDrctDbtInitn->SaveAs(Path)) == Separatista::IOErrorCode::Success)
+		*pErrorCode = m_pCstmrDrctDbtInitn->SaveAs(Path);
+		if (( *pErrorCode == Separatista::IOErrorCode::Success)
 			return S_OK;
 	}
 	catch (const Separatista::InvalidChoiceException e)
@@ -271,7 +290,8 @@ STDMETHODIMP CustomerDirectDebitInitiation::OpenFrom(BSTR Path, Separatista::IOE
 		return E_UNEXPECTED;
 
 	reader.loadSchema(Separatista::pain_008_001::CstmrDrctDbtInitn::NameSpaceURI);
-	if ((*pErrorCode = reader.parseFile(Path)) == Separatista::IOErrorCode::Success)
+	*pErrorCode = reader.parseFile(Path);
+	if (*pErrorCode == Separatista::IOErrorCode::Success)
 	{
 		try
 		{
@@ -357,8 +377,13 @@ STDMETHODIMP CustomerDirectDebitInitiation::_NewEnum(IUnknown **ppUnk)
 
 	if (!m_pCstmrDrctDbtInitn)
 		return E_UNEXPECTED;
-
+        try{
 	pEnumVariant = new EnumVariant();
+        }std::bad_alloc& ba){
+          std::cerr << "bad_alloc caught: " << ba.what() << '\n';
+        }catch(...){
+	std::cerr << "bad_alloc caught: ";	
+	}
 	if (!pEnumVariant)
 		return E_OUTOFMEMORY;
 	pEnumVariant->AddRef();
