@@ -38,8 +38,11 @@ MT940SDocument::~MT940SDocument()
 
 	// Delete all recordsets
 	for(it = m_recordsets.begin(); it != m_recordsets.end(); it++)
+		try{
 		delete *it;
-}
+		}catch (...){
+                 cout << "Error, leaving function now";
+                 }
 
 size_t MT940SDocument::getRecordsetCount()
 {
@@ -59,7 +62,12 @@ MT940SRecordset::~MT940SRecordset()
 
 	// Delete all transactions
 	for(it = m_transactions.begin(); it != m_transactions.end(); it++)
+			try{
 		delete *it;
+		}catch (...){
+                 cout << "Error, leaving function now";
+                 }
+
 }
 
 MT940SDocument::OpenStatus MT940SDocument::Open(const char *path)
@@ -223,7 +231,11 @@ MT940SDocument::OpenStatus MT940SRecordset::ReadRecord61(int line, int rline, st
 	if(rline == 0)
 	{
 		// Create new transaction and push it to the vector
+	        try{
 		pTransaction = new MT940STransaction;
+	        }catch(...){
+	        	
+	        }
 		if (!pTransaction)
 			return MT940SDocument::E_MEMORY;
 		m_transactions.push_back(pTransaction);
